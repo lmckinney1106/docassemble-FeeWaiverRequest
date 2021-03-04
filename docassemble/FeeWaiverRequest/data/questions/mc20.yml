@@ -1,0 +1,475 @@
+include:
+  - docassemble.AssemblyLine:al_package.yml
+  - docassemble.MassAccess:massaccess.yml
+---
+comment: |
+  The metadata section controls the tab title and saved interview title. You can delete this section if you include this YAML file in another YAML file.
+metadata:
+  title: |
+    Fee Waiver Request
+  short title: |
+    Fee Waiver
+---
+comment: |
+  This section is used by AssemblyLine to control how some of the questions work.
+mandatory: True
+code: |
+  interview_metadata # make sure we initialize the object
+  if not defined("interview_metadata['mc20']"):
+    interview_metadata.initializeObject('mc20')
+  interview_metadata['mc20'].update({
+    'title': 'Fee Waiver Request',
+    'short title': 'Fee Waiver',
+    'description': 'This is the form to request a fee waiver in Michigan.',
+    'original_form': '',
+    'allowed courts': [
+      'MI court',
+    ],
+    'categories': [
+    ],
+    'logic block variable': 'mc20',
+    'attachment block variable': 'mc20_attachment',
+    'typical role': 'unknown',
+  })
+---
+code: |
+  interview_short_title = 'Get a Fee Waiver'
+---
+code: |
+  al_form_type = 'other'
+---
+features:
+  navigation: True
+---
+sections:
+  - review_mc20: Review your answers
+---
+---
+###################### Main order ######################
+mandatory: True
+comment: |
+  This block includes the logic for standalone interviews.
+  Delete mandatory: True to include in another interview
+id: main_order_mc20
+code: |
+  al_intro_screen
+  mc20_intro
+  # Interview order block has form-specific logic controlling order/branching
+  interview_order_mc20
+  signature_date
+  # Save (anonymized) interview statistics.
+  store_variables_snapshot(data={'zip': users[0].address.zip})
+  mc20_preview_question  # Pre-canned preview screen
+  basic_questions_signature_flow
+  mc20_download
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic of questions in the interview
+id: interview_order_mc20
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["mc20"]["allowed courts"]
+  nav.set_section('review_mc20')
+  # Below sets the user_role by asking a question.
+  # You can set user_role directly instead to either 'plaintiff' or 'defendant'
+  user_ask_role
+  Text1
+  PlaintiffPetitioners_name_address_and_telephone_no
+  _I_receive_the_following_types_of_public_assistance_because_of_indigence
+  set_progress(25.0)
+  Date
+  CASE_NO
+  interview_order_mc20 = True
+---
+comment: |
+  This question is used to introduce your interview. Please customize
+id: Fee Waiver Request
+continue button field: mc20_intro
+question: |
+  Fee Waiver Request
+subquestion: |
+  This is the form to request a fee waiver in Michigan.
+---
+id: Review your form before you sign it
+continue button field: mc20_preview_question
+question: |
+  Review your form before you sign it
+subquestion: |
+  Here is a preview of the form you will sign on the next page. 
+  
+   ${ al_user_bundle.as_pdf(key='preview') }
+  
+  Click the image to open it in a new tab. Click the 'Make changes' button to fix any mistakes.
+  
+  ${ action_button_html(url_action('review_mc20'), label='Make changes', color='info') } 
+  
+  Remember to come back to this window to continue and sign your form.
+---
+id: Court Judge Information
+question: |
+  Court & Judge Information
+fields:
+  - 'Text1': Text1
+    maxlength: 11
+  - 'Case no': CASE_NO
+    maxlength: 27
+  - 'Text2': Text2
+    maxlength: 12
+  - 'Judge': Judge
+    maxlength: 27
+  - 'Text3': Text3
+    maxlength: 11
+  - 'Text6': Text6
+    maxlength: 76
+  - 'Text5': Text5
+    maxlength: 13
+---
+id: Party Information
+question: |
+  Party Information
+fields:
+  - 'Plaintiffpetitioners name address and telephone': PlaintiffPetitioners_name_address_and_telephone_no
+    maxlength: 210
+  - 'Defendantrespondents name address and telephone': DefendantRespondents_name_address_and_telephone_no
+    datatype: yesno
+  - 'Plaintiffpetitioners attorney bar no address and telephone': PlaintiffPetitioners_attorney_bar_no_address_and_telephone_no
+    datatype: yesno
+  - 'Defendantrespondents attorney bar no address and telephone': DefendantRespondents_attorney_bar_no_address_and_telephone_no
+    datatype: yesno
+  - 'In the matter of': In_the_matter_of
+    maxlength: 76
+---
+id: Qualifications
+question: |
+  Qualifications
+fields:
+  - 'i receive the following types of public assistance because of indigence': _I_receive_the_following_types_of_public_assistance_because_of_indigence
+    datatype: yesno
+  - 'Food assistance program through the state of michigan also known as fap or snap': Food_Assistance_Program_through_the_State_of_Michigan_also_known_as_FAP_or_SNAP
+    datatype: yesno
+  - 'Medicaid including healthy michigan chip and eso': Medicaid_including_Healthy_Michigan_CHIP_and_ESO
+    datatype: yesno
+  - 'Family independence program through the state of michigan also known as fip or tanf': Family_Independence_Program_through_the_State_of_Michigan_also_known_as_FIP_or_TANF
+    datatype: yesno
+  - 'Women infants and children benefits wic': Women_Infants_and_Children_benefits_WIC
+    datatype: yesno
+  - 'Supplemental security income through the federal government ssi': Supplemental_Security_Income_through_the_federal_government_SSI
+    datatype: yesno
+  - 'Other meanstested public assistance': Other_meanstested_public_assistance
+    datatype: yesno
+  - 'My public assistance case numbers if any is': My_public_assistance_case_numbers_if_any_is
+    maxlength: 54
+  - 'Write none if no case number do not write your ssn': Write_none_if_no_case_number_Do_not_write_your_SSN
+    maxlength: 49
+  - 'i am represented by a legal services program or i receive assistance from a law school clinic because': _I_am_represented_by_a_legal_services_program_or_I_receive_assistance_from_a_law_school_clinic_because
+    datatype: yesno
+  - 'Undefined': undefined
+    maxlength: 84
+  - 'i am unable to pay the fees and i did not check item 1 or 2 above': _I_am_unable_to_pay_the_fees_and_I_did_not_check_item_1_or_2_above
+    datatype: yesno
+  - 'The number of people in my household is': The_number_of_people_in_my_household_is
+    datatype: number
+  - 'Weektwo weeksmonthyear': WeekTwo_weeksMonthYear
+    maxlength: 39
+  - 'Undefined 2': undefined_2
+    maxlength: 8
+  - 'List assets and their worth such as bank accounts if you need more space attach a separate sheet': List_assets_and_their_worth_such_as_bank_accounts_If_you_need_more_space_attach_a_separate_sheet
+    maxlength: 67
+  - 'Text7': Text7
+    maxlength: 170
+  - 'Text8': Text8
+    maxlength: 170
+---
+id: Sign Date
+question: |
+  Sign & Date
+fields:
+  - 'Date': Date
+    maxlength: 20
+  - 'Text9': Text9
+    maxlength: 45
+  - 'Text10': Text10
+    maxlength: 44
+---
+id: Screen five
+question: |
+  Screen five
+fields:
+  - 'Case no': CASE_NO
+    maxlength: 20
+  - 'payment of filing fees is waived because': _Payment_of_filing_fees_is_waived_because
+    datatype: yesno
+  - 'A your gross household income is under 125 of the federal poverty guidelines': a_Your_gross_household_income_is_under_125_of_the_federal_poverty_guidelines
+    datatype: yesno
+  - 'B your gross household income is above 125 of the federal poverty guidelines but payment of': b_Your_gross_household_income_is_above_125_of_the_federal_poverty_guidelines_but_payment_of
+    datatype: yesno
+  - 'C other': c_Other
+    datatype: yesno
+  - 'Text11': Text11
+    maxlength: 243
+  - 'the fee waiver request is denied because': _The_fee_waiver_request_is_denied_because
+    datatype: yesno
+  - 'A your gross household income is above 125 of the federal poverty guidelines and payment of': a_Your_gross_household_income_is_above_125_of_the_federal_poverty_guidelines_and_payment_of
+    datatype: yesno
+  - 'B other': b_Other
+    datatype: yesno
+  - 'Text12': Text12
+    maxlength: 162
+  - 'Issue date completed by clerk': Issue_date_completed_by_clerk
+    maxlength: 30
+---
+progress: 100
+id: download
+event: mc20_download
+question: |
+  Your form is ready to download.
+subquestion: |
+  Thank you ${users}. Your form is ready to download and deliver.
+  
+  View, download and send your form below. Click the "Make changes" button to fix any mistakes. 
+  
+  ${ action_button_html(url_action('review_mc20'), label='Make changes', color='info') } 
+  
+  ${ al_user_bundle.download_list_html() }
+  
+  ${ al_user_bundle.send_button_html() }
+---
+objects:
+  - mc20_attachment: ALDocument.using(title="This is the form to request a fee waiver in Michigan.", filename="mc20", enabled=True, has_addendum=False)
+---
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[mc20_attachment], filename="mc20.pdf", title="All forms to download for your records")
+  - al_court_bundle: ALDocumentBundle.using(elements=[mc20_attachment], filename="mc20.pdf", title="All forms to download for your records")
+---
+attachment:
+    variable name: mc20_attachment[i]
+    name: Fee Waiver
+    filename: Fee-Waiver
+    skip undefined: True
+    pdf template file: mc20.pdf
+    fields: 
+      - "Text1": ${ Text1 }
+      - "CASE NO": ${ CASE_NO }
+      - "Text2": ${ Text2 }
+      - "Judge": ${ Judge }
+      - "Text3": ${ Text3 }
+      - "Text6": ${ Text6 }
+      - "Text5": ${ Text5 }
+      - "PlaintiffPetitioners name address and telephone no": ${ PlaintiffPetitioners_name_address_and_telephone_no }
+      - "DefendantRespondents name address and telephone no": ${ DefendantRespondents_name_address_and_telephone_no }
+      - "PlaintiffPetitioners attorney bar no address and telephone no": ${ PlaintiffPetitioners_attorney_bar_no_address_and_telephone_no }
+      - "DefendantRespondents attorney bar no address and telephone no": ${ DefendantRespondents_attorney_bar_no_address_and_telephone_no }
+      - "In the matter of": ${ In_the_matter_of }
+      - "1 I receive the following types of public assistance because of indigence": ${ _I_receive_the_following_types_of_public_assistance_because_of_indigence }
+      - "Food Assistance Program through the State of Michigan also known as FAP or SNAP": ${ Food_Assistance_Program_through_the_State_of_Michigan_also_known_as_FAP_or_SNAP }
+      - "Medicaid including Healthy Michigan CHIP and ESO": ${ Medicaid_including_Healthy_Michigan_CHIP_and_ESO }
+      - "Family Independence Program through the State of Michigan also known as FIP or TANF": ${ Family_Independence_Program_through_the_State_of_Michigan_also_known_as_FIP_or_TANF }
+      - "Women Infants and Children benefits WIC": ${ Women_Infants_and_Children_benefits_WIC }
+      - "Supplemental Security Income through the federal government SSI": ${ Supplemental_Security_Income_through_the_federal_government_SSI }
+      - "Other meanstested public assistance": ${ Other_meanstested_public_assistance }
+      - "My public assistance case numbers if any is": ${ My_public_assistance_case_numbers_if_any_is }
+      - "Write none if no case number Do not write your SSN": ${ Write_none_if_no_case_number_Do_not_write_your_SSN }
+      - "2 I am represented by a legal services program or I receive assistance from a law school clinic because": ${ _I_am_represented_by_a_legal_services_program_or_I_receive_assistance_from_a_law_school_clinic_because }
+      - "undefined": ${ undefined }
+      - "3 I am unable to pay the fees and I did not check item 1 or 2 above": ${ _I_am_unable_to_pay_the_fees_and_I_did_not_check_item_1_or_2_above }
+      - "The number of people in my household is": ${ "{:,.2f}".format(The_number_of_people_in_my_household_is) }
+      - "WeekTwo weeksMonthYear": ${ WeekTwo_weeksMonthYear }
+      - "undefined_2": ${ undefined_2 }
+      - "List assets and their worth such as bank accounts If you need more space attach a separate sheet": ${ List_assets_and_their_worth_such_as_bank_accounts_If_you_need_more_space_attach_a_separate_sheet }
+      - "Text7": ${ Text7 }
+      - "Text8": ${ Text8 }
+      - "Date": ${ Date }
+      - "Text9": ${ Text9 }
+      - "CASE NO": ${ CASE_NO }
+      - "Text10": ${ Text10 }
+      - "1 Payment of filing fees is waived because": ${ _Payment_of_filing_fees_is_waived_because }
+      - "a Your gross household income is under 125 of the federal poverty guidelines": ${ a_Your_gross_household_income_is_under_125_of_the_federal_poverty_guidelines }
+      - "b Your gross household income is above 125 of the federal poverty guidelines but payment of": ${ b_Your_gross_household_income_is_above_125_of_the_federal_poverty_guidelines_but_payment_of }
+      - "c Other": ${ c_Other }
+      - "Text11": ${ Text11 }
+      - "2 The fee waiver request is denied because": ${ _The_fee_waiver_request_is_denied_because }
+      - "a Your gross household income is above 125 of the federal poverty guidelines and payment of": ${ a_Your_gross_household_income_is_above_125_of_the_federal_poverty_guidelines_and_payment_of }
+      - "b Other": ${ b_Other }
+      - "Text12": ${ Text12 }
+      - "Issue date completed by clerk": ${ Issue_date_completed_by_clerk }
+---
+id: mc20 review screen
+event: review_mc20
+question: |
+  Review Screen
+subquestion: |
+  Edit your answers below
+review: 
+  - Edit: Text1
+    button: |
+      **Text1**:
+      ${ Text1 }
+  - Edit: CASE_NO
+    button: |
+      **Case no**:
+      ${ CASE_NO }
+  - Edit: Text2
+    button: |
+      **Text2**:
+      ${ Text2 }
+  - Edit: Judge
+    button: |
+      **Judge**:
+      ${ Judge }
+  - Edit: Text3
+    button: |
+      **Text3**:
+      ${ Text3 }
+  - Edit: Text6
+    button: |
+      **Text6**:
+      ${ Text6 }
+  - Edit: Text5
+    button: |
+      **Text5**:
+      ${ Text5 }
+  - Edit: PlaintiffPetitioners_name_address_and_telephone_no
+    button: |
+      **Plaintiffpetitioners name address and telephone**:
+      ${ PlaintiffPetitioners_name_address_and_telephone_no }
+  - Edit: DefendantRespondents_name_address_and_telephone_no
+    button: |
+      **Defendantrespondents name address and telephone**:
+      ${ word(yesno(DefendantRespondents_name_address_and_telephone_no)) }
+  - Edit: PlaintiffPetitioners_attorney_bar_no_address_and_telephone_no
+    button: |
+      **Plaintiffpetitioners attorney bar no address and telephone**:
+      ${ word(yesno(PlaintiffPetitioners_attorney_bar_no_address_and_telephone_no)) }
+  - Edit: DefendantRespondents_attorney_bar_no_address_and_telephone_no
+    button: |
+      **Defendantrespondents attorney bar no address and telephone**:
+      ${ word(yesno(DefendantRespondents_attorney_bar_no_address_and_telephone_no)) }
+  - Edit: In_the_matter_of
+    button: |
+      **In the matter of**:
+      ${ In_the_matter_of }
+  - Edit: _I_receive_the_following_types_of_public_assistance_because_of_indigence
+    button: |
+      **i receive the following types of public assistance because of indigence**:
+      ${ word(yesno(_I_receive_the_following_types_of_public_assistance_because_of_indigence)) }
+  - Edit: Food_Assistance_Program_through_the_State_of_Michigan_also_known_as_FAP_or_SNAP
+    button: |
+      **Food assistance program through the state of michigan also known as fap or snap**:
+      ${ word(yesno(Food_Assistance_Program_through_the_State_of_Michigan_also_known_as_FAP_or_SNAP)) }
+  - Edit: Medicaid_including_Healthy_Michigan_CHIP_and_ESO
+    button: |
+      **Medicaid including healthy michigan chip and eso**:
+      ${ word(yesno(Medicaid_including_Healthy_Michigan_CHIP_and_ESO)) }
+  - Edit: Family_Independence_Program_through_the_State_of_Michigan_also_known_as_FIP_or_TANF
+    button: |
+      **Family independence program through the state of michigan also known as fip or tanf**:
+      ${ word(yesno(Family_Independence_Program_through_the_State_of_Michigan_also_known_as_FIP_or_TANF)) }
+  - Edit: Women_Infants_and_Children_benefits_WIC
+    button: |
+      **Women infants and children benefits wic**:
+      ${ word(yesno(Women_Infants_and_Children_benefits_WIC)) }
+  - Edit: Supplemental_Security_Income_through_the_federal_government_SSI
+    button: |
+      **Supplemental security income through the federal government ssi**:
+      ${ word(yesno(Supplemental_Security_Income_through_the_federal_government_SSI)) }
+  - Edit: Other_meanstested_public_assistance
+    button: |
+      **Other meanstested public assistance**:
+      ${ word(yesno(Other_meanstested_public_assistance)) }
+  - Edit: My_public_assistance_case_numbers_if_any_is
+    button: |
+      **My public assistance case numbers if any is**:
+      ${ My_public_assistance_case_numbers_if_any_is }
+  - Edit: Write_none_if_no_case_number_Do_not_write_your_SSN
+    button: |
+      **Write none if no case number do not write your ssn**:
+      ${ Write_none_if_no_case_number_Do_not_write_your_SSN }
+  - Edit: _I_am_represented_by_a_legal_services_program_or_I_receive_assistance_from_a_law_school_clinic_because
+    button: |
+      **i am represented by a legal services program or i receive assistance from a law school clinic because**:
+      ${ word(yesno(_I_am_represented_by_a_legal_services_program_or_I_receive_assistance_from_a_law_school_clinic_because)) }
+  - Edit: undefined
+    button: |
+      **Undefined**:
+      ${ undefined }
+  - Edit: _I_am_unable_to_pay_the_fees_and_I_did_not_check_item_1_or_2_above
+    button: |
+      **i am unable to pay the fees and i did not check item 1 or 2 above**:
+      ${ word(yesno(_I_am_unable_to_pay_the_fees_and_I_did_not_check_item_1_or_2_above)) }
+  - Edit: The_number_of_people_in_my_household_is
+    button: |
+      **The number of people in my household is**:
+      ${ The_number_of_people_in_my_household_is }
+  - Edit: WeekTwo_weeksMonthYear
+    button: |
+      **Weektwo weeksmonthyear**:
+      ${ WeekTwo_weeksMonthYear }
+  - Edit: undefined_2
+    button: |
+      **Undefined 2**:
+      ${ undefined_2 }
+  - Edit: List_assets_and_their_worth_such_as_bank_accounts_If_you_need_more_space_attach_a_separate_sheet
+    button: |
+      **List assets and their worth such as bank accounts if you need more space attach a separate sheet**:
+      ${ List_assets_and_their_worth_such_as_bank_accounts_If_you_need_more_space_attach_a_separate_sheet }
+  - Edit: Text7
+    button: |
+      **Text7**:
+      ${ Text7 }
+  - Edit: Text8
+    button: |
+      **Text8**:
+      ${ Text8 }
+  - Edit: Date
+    button: |
+      **Date**:
+      ${ Date }
+  - Edit: Text9
+    button: |
+      **Text9**:
+      ${ Text9 }
+  - Edit: Text10
+    button: |
+      **Text10**:
+      ${ Text10 }
+  - Edit: _Payment_of_filing_fees_is_waived_because
+    button: |
+      **payment of filing fees is waived because**:
+      ${ word(yesno(_Payment_of_filing_fees_is_waived_because)) }
+  - Edit: a_Your_gross_household_income_is_under_125_of_the_federal_poverty_guidelines
+    button: |
+      **A your gross household income is under 125 of the federal poverty guidelines**:
+      ${ word(yesno(a_Your_gross_household_income_is_under_125_of_the_federal_poverty_guidelines)) }
+  - Edit: b_Your_gross_household_income_is_above_125_of_the_federal_poverty_guidelines_but_payment_of
+    button: |
+      **B your gross household income is above 125 of the federal poverty guidelines but payment of**:
+      ${ word(yesno(b_Your_gross_household_income_is_above_125_of_the_federal_poverty_guidelines_but_payment_of)) }
+  - Edit: c_Other
+    button: |
+      **C other**:
+      ${ word(yesno(c_Other)) }
+  - Edit: Text11
+    button: |
+      **Text11**:
+      ${ Text11 }
+  - Edit: _The_fee_waiver_request_is_denied_because
+    button: |
+      **the fee waiver request is denied because**:
+      ${ word(yesno(_The_fee_waiver_request_is_denied_because)) }
+  - Edit: a_Your_gross_household_income_is_above_125_of_the_federal_poverty_guidelines_and_payment_of
+    button: |
+      **A your gross household income is above 125 of the federal poverty guidelines and payment of**:
+      ${ word(yesno(a_Your_gross_household_income_is_above_125_of_the_federal_poverty_guidelines_and_payment_of)) }
+  - Edit: b_Other
+    button: |
+      **B other**:
+      ${ word(yesno(b_Other)) }
+  - Edit: Text12
+    button: |
+      **Text12**:
+      ${ Text12 }
+  - Edit: Issue_date_completed_by_clerk
+    button: |
+      **Issue date completed by clerk**:
+      ${ Issue_date_completed_by_clerk }
